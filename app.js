@@ -8,6 +8,7 @@ class App {
         this.$noteTitle = document.querySelector("#note-title");
         this.$formButtons = document.querySelector("#form-buttons");
         this.$noteText = document.querySelector("#note-text");
+        this.$closeButton = document.querySelector("#form-close-button");
 
         this.addEvenetListeners();
     }
@@ -26,13 +27,24 @@ class App {
                 this.addNote({ title, text });
             }
         });
+
+        this.$closeButton.addEventListener('click', event => {
+            event.stopPropagation();
+            this.closeForm();
+        });
     }
 
     handleFormClick(event) {
         const isFormClicked = this.$form.contains(event.target);
 
+        const title = this.$noteTitle.value;
+        const text = this.$noteText.value;
+        const hasNote = title || text;
+
         if (isFormClicked) {
             this.openForm();
+        } else if (hasNote) {
+            this.addNote({ title, text });
         } else {
             this.closeForm();
         }
