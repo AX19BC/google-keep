@@ -1,6 +1,6 @@
 class App {
     constructor() {
-        this.notes = [];
+        this.notes = JSON.parse(localStorage.getItem('notes')) || [];
         this.title = '';
         this.text = '';
         this.id = '';
@@ -18,6 +18,7 @@ class App {
         this.$modalCloseButton = document.querySelector(".modal-close-button");
         this.$colorTooltip = document.querySelector("#color-tooltip");
 
+        this.render();
         this.addEvenetListeners();
     }
 
