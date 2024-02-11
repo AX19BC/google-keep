@@ -16,6 +16,7 @@ class App {
         this.$modalTitle = document.querySelector(".modal-title");
         this.$modalText = document.querySelector(".modal-text");
         this.$modalCloseButton = document.querySelector(".modal-close-button");
+        this.$colorTooltip = document.querySelector("#color-tooltip");
 
         this.addEvenetListeners();
     }
@@ -25,7 +26,32 @@ class App {
             this.handleFormClick(event);
             this.selectNote(event);
             this.openModal(event);
+            this.deleteNote(event);
         });
+
+        document.body.addEventListener("mouseover", event => {
+            this.openToolTip(event);
+        });
+
+        document.body.addEventListener("mouseout", event => {
+            this.closeToolTip(event);
+        });
+
+        this.$colorTooltip.addEventListener("mouseover", function () {
+            this.style.display = 'flex';
+        });
+
+        this.$colorTooltip.addEventListener("mouseout", function () {
+            this.style.display = 'none';
+        });
+
+        this.$colorTooltip.addEventListener('click', event => {
+            const color = event.target.dataset.color;
+            if (color) {
+                this.editNoteColor(color);
+            }
+        });
+
 
         this.$form.addEventListener('submit', event => {
             event.preventDefault();
@@ -77,7 +103,9 @@ class App {
         this.$noteText.value = '';
     }
 
-    openModal() {
+    openModal(event) {
+        if (event.target.matches('.toolbar-delete')) return;
+
         if (event.target.closest('.note')) {
             this.$modal.classList.toggle('open-modal');
             this.$modalTitle.value = this.title;
@@ -90,6 +118,21 @@ class App {
         this.$modal.classList.toggle('open-modal');
     }
 
+    openToolTip(event) {
+        if (!event.target.matches(".toolbar-color")) return;
+        this.id = event.target.dataset.id;
+        const noteCoords = event.target.getBoundingClientRect();
+        const horizontal = noteCoords.left + window.scrollX;
+        const vertical = noteCoords.top + window.scrollY - 264;
+        this.$colorTooltip.style.transform = `translate(${horizontal}px, ${vertical}px)`;
+        this.$colorTooltip.style.display = 'flex';
+    }
+
+    closeToolTip(event) {
+        if (!event.target.matches(".toolbar-color")) return;
+        this.$colorTooltip.style.display = 'none';
+    }
+
     addNote(note) {
         const newNote = {
             title: note.title,
@@ -98,7 +141,7 @@ class App {
             id: this.notes.length > 0 ? this.notes[this.notes.length - 1].id + 1 : 1
         };
         this.notes = [...this.notes, newNote];
-        this.displayNotes();
+        this.render();
         this.closeForm();
     }
 
@@ -108,7 +151,22 @@ class App {
         this.notes = this.notes.map(note =>
             note.id === Number(this.id) ? { ...note, title, text } : note
         );
-        this.displayNotes();
+        this.render();
+    }
+
+    editNoteColor(color) {
+        this.notes = this.notes.map(note =>
+            note.id === Number(this.id) ? { ...note, color } : note
+        );
+        tthis.render();
+    }
+
+    deleteNote(event) {
+        event.stopPropagation();
+        if (!event.target.matches('.toolbar-delete')) return;
+        const id = event.target.dataset.id;
+        this.notes = this.notes.filter(note => note.id !== Number(id));
+        this.render();
     }
 
     selectNote() {
@@ -118,6 +176,15 @@ class App {
         this.title = $noteTitle.innerText;
         this.text = $noteText.innerText;
         this.id = $selectedNote.dataset.id;
+    }
+
+    render() {
+        this.saveNotes();
+        this.displayNotes();
+    }
+
+    saveNotes() {
+        localStorage.setItem('notes', JSON.stringify(this.notes));
     }
 
     displayNotes() {
@@ -130,8 +197,8 @@ class App {
                 <div class="note-text">${note.text}</div>
                 <div class="toolbar-container">
                     <div class="toolbar">
-                        <img class="toolbar-color" src="https://icon.now.sh/palette">
-                        <img class="toolbar-delete" src="https://icon.now.sh/delete">
+                        <img class="toolbar-color" data-id=${note.id} src="https://icon.now.sh/palette">
+                        <img class="toolbar-delete" data-id=${note.id} src="https://icon.now.sh/delete">
                     </div>
                 </div>
             </div>
